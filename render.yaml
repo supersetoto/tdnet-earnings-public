@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: tdnet-earnings-companion
+    runtime: node
+    plan: free
+    buildCommand: ""
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 22
