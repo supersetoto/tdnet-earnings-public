@@ -1,0 +1,11 @@
+{
+  "name": "tdnet-earnings-public-v9",
+  "version": "9.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "check": "node --check server.js"
+  },
+  "engines": {"node": ">=18"}
+}
