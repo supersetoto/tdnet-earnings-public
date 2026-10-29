@@ -3,9 +3,10 @@ services:
     name: tdnet-earnings-companion
     runtime: node
     plan: free
-    buildCommand: ""
+    buildCommand: npm ci --include=dev && npm run vendor
     startCommand: node server.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_VERSION
         value: 22
+

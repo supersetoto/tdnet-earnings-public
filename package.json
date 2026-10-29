@@ -1,11 +1,21 @@
 {
-  "name": "tdnet-earnings-public-v9",
-  "version": "9.0.0",
+  "name": "tdnet-earnings-companion",
+  "version": "14.0.0-beta.1",
   "private": true,
   "type": "commonjs",
   "scripts": {
+    "dev": "node --use-env-proxy server.js",
     "start": "node server.js",
-    "check": "node --check server.js"
+    "check": "node --check server.js && node --check discovery.js && node --check public/statement-parser.js && node scripts/check-client.mjs",
+    "test": "node --test test/*.test.js",
+    "vendor": "node scripts/vendor-pdfjs.mjs"
   },
-  "engines": {"node": ">=18"}
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "acorn": "8.15.0",
+    "pdfjs-dist": "4.10.38",
+    "tesseract.js": "5.1.1"
+  }
 }
