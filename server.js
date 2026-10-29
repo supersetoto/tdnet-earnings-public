@@ -1,10 +1,15 @@
 const http=require('http');
 const dns=require('dns').promises;
 const net=require('net');
+const fs=require('fs');
+const path=require('path');
+const {createDiscovery}=require('./discovery');
+const CMAPS=JSON.parse(fs.readFileSync(path.join(__dirname,'public/vendor/cmaps.json'),'utf8'));
 
 const HOST=process.env.HOST||'0.0.0.0';
-const PORT=Number(process.env.PORT||8790);
-const BUILD='public-binary-backend-20261029-v9';
+const portIndex=process.argv.indexOf('--port');
+const PORT=Number(process.env.PORT||(portIndex>=0?process.argv[portIndex+1]:8790));
+const BUILD='earnings-companion-v14-20261029';
 const MAX_PDF_BYTES=40*1024*1024;
 const MAX_REDIRECTS=5;
 const CACHE_TTL_MS=10*60*1000;
@@ -50,6 +55,7 @@ async function assertPublicUrl(raw){
   let u;
   try{u=new URL(raw);}catch{throw new Error('URLが不正です');}
   if(!['http:','https:'].includes(u.protocol))throw new Error('http/https URLのみ対応です');
+  if(u.username||u.password||u.port&&!['80','443'].includes(u.port))throw new Error('認証情報・独自ポートを含むURLには対応しません');
   if(!u.hostname||/^(localhost|localhost\.|.*\.localhost)$/i.test(u.hostname))throw new Error('ローカル宛URLは利用できません');
   const addrs=await dns.lookup(u.hostname,{all:true,verbatim:true});
   if(!addrs.length||addrs.some(x=>isPrivateIp(x.address)))throw new Error('プライベートIP宛URLは利用できません');
@@ -70,16 +76,18 @@ async function fetchPdf(rawUrl){
         'Accept':'application/pdf,application/octet-stream;q=0.9,*/*;q=0.5',
         'Accept-Language':'ja,en;q=0.8'
       }});
-    }finally{clearTimeout(timer);}
+    }catch(e){clearTimeout(timer);throw e;}
     if([301,302,303,307,308].includes(r.status)){
       const loc=r.headers.get('location');
       if(!loc)throw new Error(`リダイレクト先がありません (HTTP ${r.status})`);
-      current=new URL(loc,u).href;continue;
+      clearTimeout(timer);current=new URL(loc,u).href;continue;
     }
     if(!r.ok)throw new Error(`取得先がHTTP ${r.status}を返しました`);
     const len=Number(r.headers.get('content-length')||0);
     if(len&&len>MAX_PDF_BYTES)throw new Error('PDFが40MBを超えています');
-    const ab=await r.arrayBuffer();
+    const chunks=[];let size=0;
+    try{for await(const chunk of r.body){size+=chunk.length;if(size>MAX_PDF_BYTES)throw Error('PDFが40MBを超えています');chunks.push(chunk);}}finally{clearTimeout(timer);}
+    const ab=Buffer.concat(chunks);
     if(ab.byteLength>MAX_PDF_BYTES)throw new Error('PDFが40MBを超えています');
     const buf=Buffer.from(ab);
     if(buf.subarray(0,5).toString('ascii')!=='%PDF-')throw new Error('取得結果がPDFではありません');
@@ -93,6 +101,19 @@ async function fetchPdf(rawUrl){
   }
   throw new Error('リダイレクト回数が多すぎます');
 }
+const discovery=createDiscovery(async raw=>{
+  let target=raw;
+  for(let hop=0;hop<6;hop++){
+    const u=await assertPublicUrl(target),r=await fetch(u,{redirect:'manual',signal:AbortSignal.timeout(20000),headers:{'User-Agent':'TDnetEarningsCompanion/14','Accept':'text/html,application/json,text/javascript'}});
+    if([301,302,303,307,308].includes(r.status)){target=new URL(r.headers.get('location'),u).href;continue;}
+    if(!r.ok)throw Error(`探索先がHTTP ${r.status}を返しました`);
+    const ab=await r.arrayBuffer();if(ab.byteLength>8*1024*1024)throw Error('探索資料のサイズ超過');
+    const charset=/charset=([^;\s]+)/i.exec(r.headers.get('content-type')||'')?.[1]||'utf-8';
+    return new TextDecoder(charset).decode(ab);
+  }
+  throw Error('探索先の転送回数超過');
+});
+async function readJson(req){let raw='';for await(const chunk of req){raw+=chunk;if(raw.length>16000)throw Error('リクエストが大きすぎます');}return JSON.parse(raw||'{}');}
 const HOME=`<!doctype html><meta charset="utf-8"><title>TDnet Earnings PDF Backend</title>
 <style>body{font-family:system-ui,sans-serif;max-width:760px;margin:60px auto;padding:0 20px;line-height:1.7}code{background:#f2f4f7;padding:2px 5px;border-radius:4px}input{width:100%;padding:10px}button{margin-top:10px;padding:10px 16px}</style>
 <h1>TDnet 決算PDFバックエンド</h1>
@@ -105,6 +126,14 @@ const server=http.createServer(async(req,res)=>{
     const base=`http://${req.headers.host||'localhost'}`;
     const u=new URL(req.url,base);
     if(u.pathname==='/api/health')return json(res,200,{ok:true,build:BUILD,pdf_proxy:true});
+    if(u.pathname==='/api/earnings/sources'&&req.method==='POST'){
+      if(!allowRate(req))return json(res,429,{error:'リクエストが多すぎます'});
+      return json(res,200,await discovery.sources(await readJson(req)));
+    }
+    if(u.pathname==='/api/disclosures'){
+      if(!allowRate(req))return json(res,429,{error:'リクエストが多すぎます'});
+      return json(res,200,await discovery.disclosures(u.searchParams.get('ticker'),u.searchParams.get('date')));
+    }
     if(u.pathname==='/api/pdf'){
       if(!allowRate(req))return json(res,429,{error:'リクエストが多すぎます'});
       const target=u.searchParams.get('url');
@@ -114,11 +143,15 @@ const server=http.createServer(async(req,res)=>{
       return res.end(item.buf);
     }
     if(u.pathname==='/'){
-      const body=Buffer.from(HOME);
+      const body=fs.readFileSync(path.join(__dirname,'public','index.html'));
       res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Length':body.length,'Cache-Control':'no-cache'});
       return res.end(body);
+    }
+    if(['/statement-parser.js','/vendor/pdf.min.mjs','/vendor/pdf.worker.min.mjs'].includes(u.pathname)||/^\/vendor\/cmaps\/[A-Za-z0-9_-]+\.bcmap$/.test(u.pathname)){
+      const body=u.pathname.endsWith('.bcmap')?Buffer.from(CMAPS[path.basename(u.pathname)]||'', 'base64'):fs.readFileSync(path.join(__dirname,'public',u.pathname));res.writeHead(200,{'Content-Type':u.pathname.endsWith('.bcmap')?'application/octet-stream':'text/javascript; charset=utf-8','Content-Length':body.length,'Cache-Control':'no-cache'});return res.end(body);
     }
     return json(res,404,{error:'not found'});
   }catch(e){return json(res,502,{error:e&&e.message?e.message:String(e)});}
 });
 server.listen(PORT,HOST,()=>console.log(`TDnet earnings PDF backend listening on ${HOST}:${PORT} build=${BUILD}`));
+

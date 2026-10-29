@@ -1,0 +1,1 @@
+import fs from 'node:fs';import path from 'node:path';import {parse} from 'acorn';const file=path.resolve(import.meta.dirname,'../public/index.html'),html=fs.readFileSync(file,'utf8'),js=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];if(!js)throw Error('Client script missing');parse(js,{ecmaVersion:'latest'});console.log('Client syntax valid');

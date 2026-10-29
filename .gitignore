@@ -1,0 +1,5 @@
+node_modules/
+public/vendor/
+.test-cache/
+.openai/
+hosting-worker.js
