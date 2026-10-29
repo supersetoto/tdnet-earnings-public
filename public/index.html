@@ -242,28 +242,6 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
               <p>このコンパニオン内の銘柄一覧と決算データは同じ銘柄マスターを共有します。決算保存時、未登録銘柄は「決算監視」として監視リストへ自動追加されます。会社名の変更も同一コードへ同期します。</p>
             </div>
 
-            <div class="auto-fetch-panel">
-              <div class="auto-fetch-row">
-                <strong>短信から自動取得</strong>
-                <button type="button" id="autoFetchEarningsBtn" class="btn primary">自動取得（指定PDF優先）</button>
-                <span class="mini-note">指定PDFがあれば最優先。不足分だけ会社公式IR・TDnetから補完</span>
-              </div>
-              <div id="autoFetchStatus" class="auto-fetch-status">証券コード、決算期、四半期を選択後に実行します。PDFを直接指定した場合はそれを最優先し、不足分だけ自動探索します。</div>
-              <details class="manual-source-panel" id="manualSourcePanel">
-                <summary>PDFを直接指定（URL / ドラッグ&ドロップ）</summary>
-                <p class="manual-source-note">Q2は原則「今回Q2短信＋今回Q1短信」の2本で前年Q単体・YoYまで計算します。比較前年列がない場合だけ前年資料を指定してください。</p>
-                <div class="manual-source-grid">
-                  <div class="manual-source-row" data-source-key="current"><div class="manual-source-label">今回短信</div><input class="manual-source-url" data-source-key="current" type="url" placeholder="PDF URL"><label class="manual-drop" data-source-key="current">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="current" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="current"></div></div>
-                  <div class="manual-source-row" data-source-key="previous_quarter"><div class="manual-source-label">前Q短信</div><input class="manual-source-url" data-source-key="previous_quarter" type="url" placeholder="PDF URL"><label class="manual-drop" data-source-key="previous_quarter">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="previous_quarter" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="previous_quarter"></div></div>
-                  <div class="manual-source-row" data-source-key="prior_year"><div class="manual-source-label">前年同Q短信</div><input class="manual-source-url" data-source-key="prior_year" type="url" placeholder="PDF URL"><label class="manual-drop" data-source-key="prior_year">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="prior_year" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="prior_year"></div></div>
-                  <div class="manual-source-row" data-source-key="prior_year_previous_quarter"><div class="manual-source-label">前年前Q短信</div><input class="manual-source-url" data-source-key="prior_year_previous_quarter" type="url" placeholder="PDF URL"><label class="manual-drop" data-source-key="prior_year_previous_quarter">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="prior_year_previous_quarter" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="prior_year_previous_quarter"></div></div>
-                  <div class="manual-source-row" data-source-key="prior_year_full_year"><div class="manual-source-label">前年通期短信</div><input class="manual-source-url" data-source-key="prior_year_full_year" type="url" placeholder="PDF URL"><label class="manual-drop" data-source-key="prior_year_full_year">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="prior_year_full_year" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="prior_year_full_year"></div></div>
-                </div>
-                <div class="manual-source-actions"><button type="button" id="manualFetchEarningsBtn" class="btn secondary">指定PDFだけで解析</button><button type="button" id="clearManualSourcesBtn" class="btn ghost">PDF指定をクリア</button></div>
-              </details>
-              <div id="autoFetchSources" class="source-docs"></div>
-            </div>
-
             <div class="form-section">
               <h3>基本情報</h3>
               <div class="earnings-form-grid four">
@@ -274,15 +252,44 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
               </div>
             </div>
 
+            <div class="auto-fetch-panel" id="irRegistryPanel">
+  <strong>会社IRサイトを登録</strong>
+  <label style="display:block;margin:8px 0">会社IRサイトURL（銘柄ごとに保存）<input id="irRootInput" name="irRoot" type="url" style="width:100%;padding:9px" placeholder="https://会社サイト/ir/決算資料/"></label>
+  <div class="auto-fetch-row"><button type="button" id="saveIrRootBtn" class="btn secondary">IRサイトを登録</button><button type="button" id="fetchLatestIrBtn" class="btn primary">登録IRから最新の短信・説明会資料を取得</button></div>
+  <p id="irRootStatus" class="auto-fetch-status">コードとIRサイトを登録すると、最新の対象期を候補から確認し、短信の本文で再照合します。</p>
+  <label><input type="checkbox" id="includePresentations" checked> 説明会資料の増減要因・セグメント分析も行う（画像の図表は時間がかかります）</label>
+</div>
+<div class="auto-fetch-panel">
+              <div class="auto-fetch-row">
+                <strong>短信から自動取得</strong>
+                <button type="button" id="autoFetchEarningsBtn" class="btn primary">自動取得（指定PDF優先）</button>
+                <span class="mini-note">指定PDFがあれば最優先。不足分だけ会社公式IR・TDnetから補完</span>
+              </div>
+              <div id="autoFetchStatus" class="auto-fetch-status">証券コード、決算期、四半期を選択後に実行します。PDFを直接指定した場合はそれを最優先し、不足分だけ自動探索します。</div>
+              <details class="manual-source-panel" id="manualSourcePanel">
+                <summary>PDFを直接指定（URL / ドラッグ&ドロップ）</summary>
+                <p class="manual-source-note">Q2は原則「今回Q2短信＋今回Q1短信」の2本で前年Q単体・YoYまで計算します。比較前年列がない場合だけ前年資料を指定してください。</p>
+                <div class="manual-source-grid">
+                  <div class="manual-source-row" data-source-key="current"><div class="manual-source-label">今回短信</div><input class="manual-source-url" data-source-key="current" type="url" aria-label="今回短信のPDF URL" placeholder="PDF URL"><label class="manual-drop" data-source-key="current">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="current" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="current"></div></div>
+                  <div class="manual-source-row" data-source-key="previous_quarter"><div class="manual-source-label">前Q短信</div><input class="manual-source-url" data-source-key="previous_quarter" type="url" aria-label="前Q短信のPDF URL" placeholder="PDF URL"><label class="manual-drop" data-source-key="previous_quarter">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="previous_quarter" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="previous_quarter"></div></div>
+                  <div class="manual-source-row" data-source-key="prior_year"><div class="manual-source-label">前年同Q短信</div><input class="manual-source-url" data-source-key="prior_year" type="url" aria-label="前年同Q短信のPDF URL" placeholder="PDF URL"><label class="manual-drop" data-source-key="prior_year">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="prior_year" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="prior_year"></div></div>
+                  <div class="manual-source-row" data-source-key="prior_year_previous_quarter"><div class="manual-source-label">前年前Q短信</div><input class="manual-source-url" data-source-key="prior_year_previous_quarter" type="url" aria-label="前年前Q短信のPDF URL" placeholder="PDF URL"><label class="manual-drop" data-source-key="prior_year_previous_quarter">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="prior_year_previous_quarter" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="prior_year_previous_quarter"></div></div>
+                  <div class="manual-source-row" data-source-key="prior_year_full_year"><div class="manual-source-label">前年通期短信</div><input class="manual-source-url" data-source-key="prior_year_full_year" type="url" aria-label="前年通期短信のPDF URL" placeholder="PDF URL"><label class="manual-drop" data-source-key="prior_year_full_year">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="prior_year_full_year" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="prior_year_full_year"></div></div>
+                <div class="manual-source-row" data-source-key="presentation_current"><div class="manual-source-label">今回 説明会資料</div><input class="manual-source-url" data-source-key="presentation_current" type="url" aria-label="今回 説明会資料のPDF URL" placeholder="PDF URL"><label class="manual-drop" data-source-key="presentation_current">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="presentation_current" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="presentation_current"></div></div><div class="manual-source-row" data-source-key="presentation_previous"><div class="manual-source-label">前Q 説明会資料</div><input class="manual-source-url" data-source-key="presentation_previous" type="url" aria-label="前Q 説明会資料のPDF URL" placeholder="PDF URL"><label class="manual-drop" data-source-key="presentation_previous">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="presentation_previous" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="presentation_previous"></div></div><div class="manual-source-row" data-source-key="presentation_prior_full"><div class="manual-source-label">前年本決算 説明会資料</div><input class="manual-source-url" data-source-key="presentation_prior_full" type="url" aria-label="前年本決算 説明会資料のPDF URL" placeholder="PDF URL"><label class="manual-drop" data-source-key="presentation_prior_full">PDFをドロップ / 選択<input class="manual-source-file" data-source-key="presentation_prior_full" type="file" accept="application/pdf,.pdf" hidden></label><div class="manual-source-state" data-source-key="presentation_prior_full"></div></div></div>
+                <div class="manual-source-actions"><button type="button" id="manualFetchEarningsBtn" class="btn secondary">指定PDFだけで解析</button><button type="button" id="clearManualSourcesBtn" class="btn ghost">PDF指定をクリア</button></div>
+              </details>
+              <div id="autoFetchSources" class="source-docs"></div><div id="presentationSummary" class="auto-fetch-status" style="white-space:pre-wrap"></div>
+            </div>
+
             <details class="calc-helper" open>
               <summary>累計値からQ単体を逆算する</summary>
               <p class="helper">Q2なら「上期累計－Q1累計」、Q3なら「Q3累計－上期累計」、Q4なら「通期実績－Q3累計」。前年も同様に差し引き、YoYまで自動計算します。Q1は前Q累計を0にしてください。</p>
               <div class="calc-table">
                 <div></div><b>売上高（億円）</b><b>営業利益（億円）</b>
                 <span>今回累計</span><input id="cumRevenueNow" type="number" step="0.01"><input id="cumOpNow" type="number" step="0.01">
-                <span>前Q累計</span><input id="cumRevenuePrevQ" type="number" step="0.01" value="0"><input id="cumOpPrevQ" type="number" step="0.01" value="0">
+                <span>前Q累計</span><input id="cumRevenuePrevQ" type="number" step="0.01"><input id="cumOpPrevQ" type="number" step="0.01">
                 <span>前年今回累計</span><input id="cumRevenuePriorNow" type="number" step="0.01"><input id="cumOpPriorNow" type="number" step="0.01">
-                <span>前年前Q累計</span><input id="cumRevenuePriorPrevQ" type="number" step="0.01" value="0"><input id="cumOpPriorPrevQ" type="number" step="0.01" value="0">
+                <span>前年前Q累計</span><input id="cumRevenuePriorPrevQ" type="number" step="0.01"><input id="cumOpPriorPrevQ" type="number" step="0.01">
               </div>
               <button type="button" id="applyQuarterCalcBtn" class="btn secondary">Q単体実績へ反映</button>
             </details>
@@ -291,9 +298,9 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
               <h3>Q単体実績</h3>
               <div class="earnings-form-grid five">
                 <label>売上高（億円）<input name="qRevenue" type="number" step="1" required></label>
-                <label>売上高 YoY（%）<input name="qRevenueYoy" type="number" step="1" required></label>
+                <label>売上高 YoY（%）<input name="qRevenueYoy" type="number" step="1"></label>
                 <label>営業利益（億円）<input name="qOp" type="number" step="1" required></label>
-                <label>営業利益 YoY（%）<input name="qOpYoy" type="number" step="1" required></label>
+                <label>営業利益 YoY（%）<input name="qOpYoy" type="number" step="1"></label>
                 <label>OPM（%）<input name="qOpm" type="number" step="0.1" required></label>
               </div>
             </div>
@@ -442,6 +449,9 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
 
   <div id="toast" class="toast hidden"></div>
   <script src="/statement-parser.js"></script>
+  <script src="/presentation-parser.js"></script>
+  <script src="/ocr-numbers.js"></script>
+  <script src="/presentation-browser.js"></script>
   <script>
 (() => {
   'use strict';
@@ -452,6 +462,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   const HISTORY_KEY = 'earnings_companion_history_v2';
   const UI_TAB_KEY = 'earnings_companion_active_tab_v2';
   const AUTOFETCH_VERSION = 1;
+  const SOURCE_SNAPSHOT = {app:'earnings-companion',version:14,captured:'2026-10-29'};
 
   const companyMap = {
     '1963':'日揮ホールディングス','2768':'双日','3116':'トヨタ紡織','3186':'ネクステージ','4732':'ユー・エス・エス',
@@ -488,7 +499,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   let analysisRunning=false;
 
   function baseState(){
-    return { watchlist:[], calendar:[], disclosures:[], rssUrl:'', earningsRecords:[], templates:defaultTemplates(), updatedAt:new Date().toISOString(), sourceSnapshot:SOURCE_SNAPSHOT };
+    return { watchlist:[], calendar:[], disclosures:[], rssUrl:'', irSites:{}, earningsRecords:[], templates:defaultTemplates(), updatedAt:new Date().toISOString(), sourceSnapshot:SOURCE_SNAPSHOT };
   }
   function allState(){ try { return JSON.parse(localStorage.getItem(APP_KEY) || '{}'); } catch { return {}; } }
   function saveAll(obj){ localStorage.setItem(APP_KEY, JSON.stringify(obj)); }
@@ -499,6 +510,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
       watchlist:Array.isArray(s.watchlist)?s.watchlist:[],
       calendar:Array.isArray(s.calendar)?s.calendar:[],
       disclosures:Array.isArray(s.disclosures)?s.disclosures:[],
+      irSites:s.irSites&&typeof s.irSites==='object'?s.irSites:{},
       earningsRecords:Array.isArray(s.earningsRecords)?s.earningsRecords.map(r=>({...r,quarter:r.quarter==='通期'?'Q4':r.quarter,segments:Array.isArray(r.segments)?r.segments:[]})):[],
       templates:{...defaultTemplates(), ...(s.templates||{})}
     };
@@ -572,9 +584,10 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   }
   function autoCompany(){ const ticker=normTicker(el('tickerInput').value); const c=masterCompany(ticker); if(c) el('companyInput').value=c; }
   function autoEarningsCompany(){
-    const f=el('earningsForm'); const ticker=normTicker(f.elements.ticker.value); const c=masterCompany(ticker);
+    const f=el('earningsForm'); const ticker=normTicker(f.elements.ticker.value); const c=OFFICIAL_COMPANY_HINTS[ticker]||masterCompany(ticker)||irSites()[ticker]?.company||'';
     if(c){ f.elements.company.value=c; f.elements.company.dataset.autoCompany='1'; }else if(f.elements.company.dataset.autoCompany==='1'){f.elements.company.value='';}
     const sel=el('earningsWatchlistSelect'); if(sel) sel.value=state.watchlist.some(x=>x.ticker===ticker)?ticker:'';
+    syncIrRoot();
     if(ticker.length>=4 && !f.elements.recordId.value) scheduleCurrentFiscalMeta(ticker);
   }
   function renderEarningsWatchlistSelect(){
@@ -601,7 +614,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   function scheduleCurrentFiscalMeta(ticker,{force=false}={}){clearTimeout(fiscalMetaTimer);fiscalMetaTimer=setTimeout(()=>applyCurrentFiscalMeta(ticker,{force}),350);}
   function selectEarningsTicker(){
     const t=normTicker(el('earningsWatchlistSelect').value); if(!t)return;
-    const f=el('earningsForm'), w=state.watchlist.find(x=>x.ticker===t); f.elements.ticker.value=t; f.elements.company.value=w?.company||masterCompany(t)||''; f.elements.company.dataset.autoCompany='1'; scheduleCurrentFiscalMeta(t,{force:!f.elements.recordId.value}); previewEarnings();
+    const f=el('earningsForm'), w=state.watchlist.find(x=>x.ticker===t); f.elements.ticker.value=t; f.elements.company.value=w?.company||masterCompany(t)||''; f.elements.company.dataset.autoCompany='1'; syncIrRoot();scheduleCurrentFiscalMeta(t,{force:!f.elements.recordId.value}); previewEarnings();
   }
 
   function addTicker(){
@@ -865,6 +878,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   }
 
     const MANUAL_SOURCE_KEYS=['current','previous_quarter','prior_year','prior_year_previous_quarter','prior_year_full_year'];
+  const ALL_PDF_KEYS=[...MANUAL_SOURCE_KEYS,'presentation_current','presentation_previous','presentation_prior_full'];
   const manualPdfFiles=new Map();
   function manualSourcePeriod(key,fiscalYear,quarter){
     const py=priorFYBrowser(fiscalYear),prev=({Q2:'Q1',Q3:'Q2',Q4:'Q3'})[quarter];
@@ -881,7 +895,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   }
   function collectManualSources(ticker,company){
     const selected={};
-    for(const key of MANUAL_SOURCE_KEYS){
+    for(const key of ALL_PDF_KEYS){
       const file=manualPdfFiles.get(key); const input=document.querySelector(`.manual-source-url[data-source-key="${key}"]`); const url=String(input?.value||'').trim();
       if(file)selected[key]={file,title:file.name,source:'アップロード',ticker,company,url:''};
       else if(url)selected[key]={url,title:url.split('/').pop()?.split(/[?#]/)[0]||'指定PDF',source:'指定URL',ticker,company};
@@ -889,7 +903,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
     return selected;
   }
   function clearManualSources(){
-    manualPdfFiles.clear(); document.querySelectorAll('.manual-source-url').forEach(x=>x.value=''); document.querySelectorAll('.manual-source-file').forEach(x=>x.value=''); MANUAL_SOURCE_KEYS.forEach(k=>manualSourceState(k,''));
+    manualPdfFiles.clear(); document.querySelectorAll('.manual-source-url').forEach(x=>x.value=''); document.querySelectorAll('.manual-source-file').forEach(x=>x.value=''); ALL_PDF_KEYS.forEach(k=>manualSourceState(k,''));
   }
   async function extractPdfLinesFromFile(file){
     const data=await file.arrayBuffer();
@@ -908,14 +922,14 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
       cumRevenuePriorNow:priorNow.get(name)?.revenue??null,cumRevenuePriorPrevQ:prev?priorPrev.get(name)?.revenue??null:0,
       cumOpNow:now.get(name)?.op??null,cumOpPrevQ:prev?prevNow.get(name)?.op??null:0,
       cumOpPriorNow:priorNow.get(name)?.op??null,cumOpPriorPrevQ:prev?priorPrev.get(name)?.op??null:0
-    })).filter(x=>[x.cumRevenueNow,x.cumRevenuePriorNow,x.cumOpNow,x.cumOpPriorNow].every(Number.isFinite));
+    })).filter(x=>[x.cumRevenueNow,x.cumRevenuePrevQ,x.cumRevenuePriorNow,x.cumRevenuePriorPrevQ,x.cumOpNow,x.cumOpPrevQ,x.cumOpPriorNow,x.cumOpPriorPrevQ].every(Number.isFinite));
   }
   function buildFetchedFromParsed(src,parsed){
     const cur=parsed.current,prev=parsed.previous_quarter,needsPrev=src.quarter!=='Q1';
     const prior=cur.priorActual||parsed.prior_year?.actual,priorPrev=prev?.priorActual||parsed.prior_year_previous_quarter?.actual;
     const difference=(a,b,key)=>Number.isFinite(a?.[key])&&(!needsPrev||Number.isFinite(b?.[key]))?a[key]-(needsPrev?b[key]:0):null;
     const qRev=difference(cur.actual,prev?.actual,'revenue'),qOp=difference(cur.actual,prev?.actual,'op'),pyRev=difference(prior,priorPrev,'revenue'),pyOp=difference(prior,priorPrev,'op');
-    const gc=cur.forecast,gp=prev?.forecast||gc?.previous||(gc?.revisionFlag==='無'?gc:null),dc=cur.dividend,dp=prev?.dividend;
+    const gc=cur.forecast,gp=gc?.previous||(gc?.revisionFlag==='無'?gc:prev?.forecast),dc=cur.dividend,dp=prev?.dividend;
     const gComparable=gc&&gp&&Number.isFinite(gc.revenue)&&Number.isFinite(gc.op)&&Number.isFinite(gp.revenue)&&Number.isFinite(gp.op);
     let guidanceStatus='取得できず';
     if(gc?.revisionFlag==='無')guidanceStatus='据置き';
@@ -933,6 +947,12 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
       buybackType:bb?.type||(src.disclosuresComplete?'none':'unknown'),buybackAmount:bb?.amount??null,buybackShares:bb?.shares_10k??null,buybackRatio:bb?.ratio??null,buybackPeriod:bb?.period||'',
       segments:mergeAutoSegments(cur,needsPrev?prev:null,parsed.prior_year,parsed.prior_year_previous_quarter),
       sourceDocuments:Object.values(src.selected||{}).filter(Boolean),sourceUrl:cur.url||'',evidence:parsed,disclosureSources:src.disclosureSources||[],disclosuresComplete:!!src.disclosuresComplete};
+    if(src.quarter==='Q4'){
+      out.nextFiscalYear=gc?.fiscal_year||'';out.nextFyRevenue=gc?.revenue??null;out.nextFyOp=gc?.op??null;
+      out.currentFyRevenueActual=cur.actual.revenue;out.currentFyOpActual=cur.actual.op;
+      out.nextDividend=cur.nextDividend?.split?null:cur.nextDividend?.forecast??null;out.currentDividendActual=dc?.actual??null;
+      out.fyRevenue=null;out.fyOp=null;out.fyRevenuePrev=null;out.fyOpPrev=null;
+    }
     if(bb?.source)out.sourceDocuments.push(bb.source);
     return out;
   }
@@ -945,20 +965,21 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   }
   function clearAnalysisResult(){
     activeAutoRecord=null;loadSegments([]);const f=el('earningsForm');
-    for(const name of ['qRevenue','qRevenueYoy','qOp','qOpYoy','qOpm','fyRevenue','fyRevenuePrev','fyRevenuePrior','fyOp','fyOpPrev','fyOpPrior','fyOpm','dividend','dividendPrev','dividendPrior','payout','buybackAmount','buybackShares','buybackRatio','buybackPeriod','sourceUrl'])if(f.elements[name])f.elements[name].value='';
+    for(const name of ['qRevenue','qRevenueYoy','qOp','qOpYoy','qOpm','fyRevenue','fyRevenuePrev','fyRevenuePrior','fyOp','fyOpPrev','fyOpPrior','fyOpm','dividend','dividendPrev','dividendPrior','payout','buybackAmount','buybackShares','buybackRatio','buybackPeriod','sourceUrl','nextFiscalYear','nextFyRevenue','currentFyRevenueActual','nextFyOp','currentFyOpActual','nextDividend','currentDividendActual','nextPayout'])if(f.elements[name])f.elements[name].value='';
     for(const name of ['guidanceStatus','dividendStatus'])f.elements[name].value='取得できず';f.elements.buybackType.value='unknown';
-    el('earningsOutputText').value='';el('autoFetchSources').textContent='';
+    el('earningsOutputText').value='';el('autoFetchSources').textContent='';el('presentationSummary').textContent='';
   }
   async function autoFetchEarnings(extra={}){
     if(analysisRunning)return;
-    const f=el('earningsForm'),ticker=normTicker(extra.ticker||f.elements.ticker.value),fiscalYear=extra.fiscalYear||f.elements.fiscalYear.value.trim(),quarter=extra.quarter||f.elements.quarter.value;
-    if(!/^(?:\d{4}|\d{3}[A-Z])$/.test(ticker)||!/^\d{2,4}\/\d{1,2}$/.test(fiscalYear)){toast('銘柄コード・決算期を確認してください');return;}
-    analysisRunning=true;const btn=el('autoFetchEarningsBtn'),manualBtn=el('manualFetchEarningsBtn');btn.disabled=true;manualBtn.disabled=true;
+    const f=el('earningsForm'),ticker=normTicker(extra.ticker||f.elements.ticker.value);let fiscalYear=extra.fiscalYear||f.elements.fiscalYear.value.trim(),quarter=extra.quarter||f.elements.quarter.value;
+    if(!/^(?:\d{4}|\d{3}[A-Z])$/.test(ticker)||!extra.latest&&!/^\d{2,4}\/\d{1,2}$/.test(fiscalYear)){toast('銘柄コード・決算期を確認してください');return;}
+    analysisRunning=true;const btn=el('autoFetchEarningsBtn'),manualBtn=el('manualFetchEarningsBtn');btn.disabled=true;manualBtn.disabled=true;el('fetchLatestIrBtn').disabled=true;
     const company=OFFICIAL_COMPANY_HINTS[ticker]||f.elements.company.value.trim()||masterCompany(ticker)||'';
     const manual=collectManualSources(ticker,company);clearAnalysisResult();
     el('autoFetchStatus').textContent=extra.manualOnly?'指定した生PDFを解析しています…':'対象の決算短信候補を探索しています…';
     try{
-      const src=extra.manualOnly?{ticker,company,fiscal_year:fiscalYear,quarter,selected:{},candidates:{},related_disclosures:[]}:await getSourceSetCompanion(ticker,fiscalYear,quarter);
+      const src=extra.manualOnly?{ticker,company,fiscal_year:fiscalYear,quarter,selected:{},candidates:{},related_disclosures:[]}:await getSourceSetCompanion(ticker,fiscalYear,quarter,extra.latest);
+      if(extra.latest){fiscalYear=src.fiscal_year;quarter=src.quarter;f.elements.fiscalYear.value=fiscalYear;f.elements.quarter.value=quarter;}
       src.selected={...(src.selected||{}),...manual};src.company=src.company||company;
       if(!src.selected.current)throw Error('対象の今回短信を取得できませんでした。PDF URL又はファイルを指定してください');
       const parsed={};
@@ -986,13 +1007,19 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
       }catch(e){src.disclosureError=e.message;}}
       const result=buildFetchedFromParsed(src,parsed),problems=StatementParser.anomalies(result);
       if(problems.length)throw Error('解析結果に異常値があるため停止：'+problems.join('、'));
+      if(el('includePresentations').checked){
+        result.presentationAnalysis=await PresentationBrowser.analyze({src,parsed,manual,ticker,company:result.company,fiscalYear,quarter,loadPdfJs,onStatus:text=>{el('autoFetchStatus').textContent=text;}});
+        result.irRoot=el('irRootInput').value.trim();
+        for(const doc of Object.values(result.presentationAnalysis.sources||{}))if(doc)result.sourceDocuments.push(doc);
+      }
       applyFetchedRecord(result);
+      el('presentationSummary').textContent=result.presentationAnalysis?PresentationParser.text(result.presentationAnalysis,quarter):'';
       const missing=[];if(result.qRevenueYoy==null||result.qOpYoy==null&&!(result.qPriorOp<=0||result.qOp<0))missing.push('YoY');if(!result.segments.length)missing.push('セグメント');if(result.dividend==null)missing.push('配当');if(result.fyRevenue==null)missing.push('通期計画');if(result.buybackType==='unknown')missing.push('自社株買い');
-      el('autoFetchStatus').textContent=`検証完了：${result.company} ${fiscalYear} ${quarter}。${Object.keys(parsed).length}本の生PDFから計算しました。${missing.length?'取得できず：'+missing.join('、')+'。':''}`;
+      el('autoFetchStatus').textContent=`短信解析完了：${result.company} ${fiscalYear} ${quarter}。${Object.keys(parsed).length}本の生PDFから計算しました。${missing.length?'取得できず：'+missing.join('、')+'。':''}`;
       el('autoFetchSources').insertAdjacentHTML('beforeend','<details><summary>計算根拠と同日開示の確認</summary><pre style="white-space:pre-wrap;font-size:11px">'+safe(JSON.stringify({cumulativeCurrent:parsed.current.actual,cumulativePrevious:parsed.previous_quarter?.actual,comparativeCurrent:parsed.current.priorActual,comparativePrevious:parsed.previous_quarter?.priorActual,priorQuarterRevenue:result.qPriorRevenue,priorQuarterOp:result.qPriorOp,dividend:parsed.current.dividend,disclosureSources:src.disclosureSources,disclosuresComplete:src.disclosuresComplete},null,2))+'</pre></details>');
       toast('PDF本文と計算結果を検証しました');
     }catch(e){clearAnalysisResult();el('autoFetchStatus').textContent=e.message.includes('異常値')?e.message:'解析を停止：'+e.message;el('earningsOutputText').value=e.message.includes('異常値')?'解析結果に異常値があるため停止':'';toast(e.message,5000);}
-    finally{analysisRunning=false;btn.disabled=false;manualBtn.disabled=false;}
+    finally{analysisRunning=false;btn.disabled=false;manualBtn.disabled=false;el('fetchLatestIrBtn').disabled=false;}
   }
 
     function importDisclosureToEarnings(index){
@@ -1024,11 +1051,11 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
     f.elements.qRevenue.value=roundInt(rev);f.elements.qOp.value=roundInt(op);f.elements.qRevenueYoy.value=pctChange(rev,priorRev)??'';f.elements.qOpYoy.value=priorOp>0&&op>=0?pctChange(op,priorOp)??'':'';f.elements.qOpm.value=rev?round1(op/rev*100):'';
     activeAutoRecord={ticker:f.elements.ticker.value,fiscalYear:f.elements.fiscalYear.value,quarter:f.elements.quarter.value,qPriorOp:priorOp,qPriorRevenue:priorRev};previewEarnings();
   }
-  function emptySegment(){ return {id:uid(),name:'',cumRevenueNow:null,cumRevenuePrevQ:0,cumRevenuePriorNow:null,cumRevenuePriorPrevQ:0,cumOpNow:null,cumOpPrevQ:0,cumOpPriorNow:null,cumOpPriorPrevQ:0}; }
+  function emptySegment(){ return {id:uid(),name:'',cumRevenueNow:null,cumRevenuePrevQ:null,cumRevenuePriorNow:null,cumRevenuePriorPrevQ:null,cumOpNow:null,cumOpPrevQ:null,cumOpPriorNow:null,cumOpPriorPrevQ:null}; }
   function segmentDerived(seg){
-    const rn=n(seg.cumRevenueNow), rp=n(seg.cumRevenuePrevQ)||0, ryn=n(seg.cumRevenuePriorNow), ryp=n(seg.cumRevenuePriorPrevQ)||0;
-    const on=n(seg.cumOpNow), op=n(seg.cumOpPrevQ)||0, oyn=n(seg.cumOpPriorNow), oyp=n(seg.cumOpPriorPrevQ)||0;
-    const qRevenue=rn===null?null:rn-rp, priorRevenue=ryn===null?null:ryn-ryp, qOp=on===null?null:on-op, priorOp=oyn===null?null:oyn-oyp;
+    const rn=n(seg.cumRevenueNow), rp=n(seg.cumRevenuePrevQ), ryn=n(seg.cumRevenuePriorNow), ryp=n(seg.cumRevenuePriorPrevQ);
+    const on=n(seg.cumOpNow), op=n(seg.cumOpPrevQ), oyn=n(seg.cumOpPriorNow), oyp=n(seg.cumOpPriorPrevQ);
+    const qRevenue=rn===null||rp===null?null:rn-rp, priorRevenue=ryn===null||ryp===null?null:ryn-ryp, qOp=on===null||op===null?null:on-op, priorOp=oyn===null||oyp===null?null:oyn-oyp;
     return {...seg,qRevenue:roundInt(qRevenue),priorRevenue:roundInt(priorRevenue),qRevenueYoy:pctChange(qRevenue,priorRevenue),qOp:roundInt(qOp),priorOp:roundInt(priorOp),qOpYoy:(Number.isFinite(priorOp)&&priorOp>0)?pctChange(qOp,priorOp):null,qOpm:(Number.isFinite(qRevenue)&&qRevenue!==0&&Number.isFinite(qOp))?round1(qOp/qRevenue*100):null};
   }
   function segmentProfitPhrase(seg){
@@ -1046,7 +1073,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   function collectSegments(){
     return [...document.querySelectorAll('.segment-card')].map(card=>{
       const get=k=>card.querySelector(`[data-seg-field="${k}"]`)?.value??'';
-      return segmentDerived({id:card.dataset.segmentId||uid(),name:String(get('name')).trim(),cumRevenueNow:n(get('cumRevenueNow')),cumRevenuePrevQ:n(get('cumRevenuePrevQ'))||0,cumRevenuePriorNow:n(get('cumRevenuePriorNow')),cumRevenuePriorPrevQ:n(get('cumRevenuePriorPrevQ'))||0,cumOpNow:n(get('cumOpNow')),cumOpPrevQ:n(get('cumOpPrevQ'))||0,cumOpPriorNow:n(get('cumOpPriorNow')),cumOpPriorPrevQ:n(get('cumOpPriorPrevQ'))||0});
+      return segmentDerived({id:card.dataset.segmentId||uid(),name:String(get('name')).trim(),cumRevenueNow:n(get('cumRevenueNow')),cumRevenuePrevQ:n(get('cumRevenuePrevQ')),cumRevenuePriorNow:n(get('cumRevenuePriorNow')),cumRevenuePriorPrevQ:n(get('cumRevenuePriorPrevQ')),cumOpNow:n(get('cumOpNow')),cumOpPrevQ:n(get('cumOpPrevQ')),cumOpPriorNow:n(get('cumOpPriorNow')),cumOpPriorPrevQ:n(get('cumOpPriorPrevQ'))});
     }).filter(x=>x.name);
   }
   function segmentCardHtml(seg){
@@ -1092,7 +1119,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
       fyOp:roundInt(fyOp), fyOpPrev:roundInt(fyOpPrev), fyOpPrior:roundInt(fyOpPrior), fyOpVsPrev:pctChange(fyOp,fyOpPrev), fyOpYoy:pctChange(fyOp,fyOpPrior), fyOpm:round1(fyOpm),
       dividendStatus:f.elements.dividendStatus.value, dividend:roundInt(dividend), dividendPrev:roundInt(dividendPrev), dividendPrior:roundInt(dividendPrior), dividendVsPrev:dividend!==null&&dividendPrev!==null?roundInt(dividend-dividendPrev):null, dividendYoy:dividend!==null&&dividendPrior!==null?roundInt(dividend-dividendPrior):null,
       payout:n(f.elements.payout.value), nextFiscalYear:f.elements.nextFiscalYear.value.trim(), nextFyRevenue:roundInt(n(f.elements.nextFyRevenue.value)), currentFyRevenueActual:roundInt(n(f.elements.currentFyRevenueActual.value)), nextFyRevenueYoy:pctChange(n(f.elements.nextFyRevenue.value),n(f.elements.currentFyRevenueActual.value)), nextFyOp:roundInt(n(f.elements.nextFyOp.value)), currentFyOpActual:roundInt(n(f.elements.currentFyOpActual.value)), nextFyOpYoy:pctChange(n(f.elements.nextFyOp.value),n(f.elements.currentFyOpActual.value)), nextFyOpm:(n(f.elements.nextFyRevenue.value)&&n(f.elements.nextFyOp.value)!==null)?round1(n(f.elements.nextFyOp.value)/n(f.elements.nextFyRevenue.value)*100):null, nextDividend:roundInt(nextDividend), currentDividendActual:roundInt(currentDividendActual), nextDividendYoy:(nextDividend!==null&&currentDividendActual!==null)?roundInt(nextDividend-currentDividendActual):null, nextPayout:n(f.elements.nextPayout.value), buybackType:f.elements.buybackType.value, buybackAmount:roundInt(n(f.elements.buybackAmount.value)), buybackShares:roundInt(n(f.elements.buybackShares.value)), buybackRatio:round1(n(f.elements.buybackRatio.value)), buybackPeriod:f.elements.buybackPeriod.value.trim(), sourceUrl:f.elements.sourceUrl.value.trim(),
-      ...(activeAutoRecord&&activeAutoRecord.ticker===ticker&&activeAutoRecord.fiscalYear===fiscalYear&&activeAutoRecord.quarter===quarter?{qPriorOp:activeAutoRecord.qPriorOp,qPriorRevenue:activeAutoRecord.qPriorRevenue,dividendBasis:activeAutoRecord.dividendBasis,dividendRevision:activeAutoRecord.dividendRevision,dividendYearEnd:activeAutoRecord.dividendYearEnd,dividendInterim:activeAutoRecord.dividendInterim,evidence:activeAutoRecord.evidence,sourceDocuments:activeAutoRecord.sourceDocuments,disclosuresComplete:activeAutoRecord.disclosuresComplete,disclosureSources:activeAutoRecord.disclosureSources}:{}),
+      ...(activeAutoRecord&&activeAutoRecord.ticker===ticker&&activeAutoRecord.fiscalYear===fiscalYear&&activeAutoRecord.quarter===quarter?{qPriorOp:activeAutoRecord.qPriorOp,qPriorRevenue:activeAutoRecord.qPriorRevenue,dividendBasis:activeAutoRecord.dividendBasis,dividendRevision:activeAutoRecord.dividendRevision,dividendYearEnd:activeAutoRecord.dividendYearEnd,dividendInterim:activeAutoRecord.dividendInterim,presentationAnalysis:activeAutoRecord.presentationAnalysis,irRoot:activeAutoRecord.irRoot,evidence:activeAutoRecord.evidence,sourceDocuments:activeAutoRecord.sourceDocuments,disclosuresComplete:activeAutoRecord.disclosuresComplete,disclosureSources:activeAutoRecord.disclosureSources}:{}),
       segments:collectSegments(), updatedAt:new Date().toISOString()
     };
   }
@@ -1126,7 +1153,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
     let guidanceLine='通期計画は取得できず。';
     if(Number.isFinite(r.fyRevenue)&&Number.isFinite(r.fyOp)){
       const rate=(v,p)=>{const n=pctChange(v,p);return n==null?'従来比取得できず':`従来比${n>=0?'+':''}${n}%`;};
-      guidanceLine=`売上高${fmtNum(r.fyRevenue)}億円（${rate(r.fyRevenue,r.fyRevenuePrev)}）、営業利益${fmtNum(r.fyOp)}億円（${rate(r.fyOp,r.fyOpPrev)}）、OPM${fmtOpm(r.fyOp/r.fyRevenue*100)}。`;
+      const opRate=Number.isFinite(r.fyOpPrev)&&(r.fyOpPrev<0||r.fyOp<0)?opComparison(r.fyOp,r.fyOpPrev,null):rate(r.fyOp,r.fyOpPrev);guidanceLine=`売上高${fmtNum(r.fyRevenue)}億円（${rate(r.fyRevenue,r.fyRevenuePrev)}）、営業利益${fmtNum(r.fyOp)}億円（${opRate}）、OPM${fmtOpm(r.fyOp/r.fyRevenue*100)}。`;
       if(r.guidanceStatus==='据置き')guidanceLine+='直近公表予想から据置き。';
     }
     let dividendLine='配当は自動判定できませんでした。';
@@ -1139,10 +1166,17 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
     }
     const buybackPresence=r.buybackType==='unknown'||!r.buybackType||r.buybackType==='none'&&!r.disclosuresComplete?'取得できず':r.buybackType==='unknown'?'取得できず':r.buybackType==='none'?'なし':'あり';
     const ctx={ticker:r.ticker,company:r.company,fiscal_year:r.fiscalYear,quarter:r.quarter,quarter_line:qLine,segment_block:seg,guidance_status:r.guidanceStatus||'取得できず',guidance_line:guidanceLine,shareholder_header:`${r.dividendStatus||'取得できず'}・自社株買い${buybackPresence}`,dividend_line:dividendLine,buyback_line:buybackLineFor(r),buyback_presence:buybackPresence,q_revenue:fmtNum(r.qRevenue),q_revenue_yoy:Number.isFinite(r.qRevenueYoy)?r.qRevenueYoy:'取得できず',q_op:fmtNum(r.qOp),q_op_yoy:Number.isFinite(r.qOpYoy)?r.qOpYoy:'取得できず',q_opm:fmtOpm(r.qOpm),fy_revenue:fmtNum(r.fyRevenue),fy_op:fmtNum(r.fyOp),dividend:compactDecimal(r.dividend)};
-    const templates={...defaultTemplates(),...(state.templates||{})};return renderTemplate(templates.regular,ctx);
+    const templates={...defaultTemplates(),...(state.templates||{})};
+    if(r.quarter==='Q4'){
+      const yearChange=(now,old)=>{const v=pctChange(now,old);return v==null?'YoY取得できず':`YoY${v>=0?'+':''}${v}%`;};
+      ctx.next_fiscal_year=r.nextFiscalYear||'取得できず';ctx.next_guidance_line=Number.isFinite(r.nextFyRevenue)&&Number.isFinite(r.nextFyOp)?`売上高${fmtNum(r.nextFyRevenue)}億円（${yearChange(r.nextFyRevenue,r.currentFyRevenueActual)}）、営業利益${fmtNum(r.nextFyOp)}億円（${opComparison(r.nextFyOp,r.currentFyOpActual,pctChange(r.nextFyOp,r.currentFyOpActual))}）、OPM${fmtOpm(r.nextFyOp/r.nextFyRevenue*100)}。`:'新年度の会社計画は取得できず。';
+      const d=Number.isFinite(r.nextDividend)&&Number.isFinite(r.currentDividendActual)?r.nextDividend-r.currentDividendActual:null;
+      ctx.next_dividend_status=d==null?'取得できず':d>0?'増配':d<0?'減配':'据置き';ctx.next_dividend_line=Number.isFinite(r.nextDividend)?`配当：年間${compactDecimal(r.nextDividend)}円${d==null?'':`、前年差${signedYen(d)}`}。`:'配当は自動判定できませんでした。';
+    }
+    return renderTemplate(r.quarter==='Q4'?templates.q4:templates.regular,ctx)+(r.presentationAnalysis?PresentationParser.text(r.presentationAnalysis,r.quarter):'');
   }
 
-    function previewEarnings(){ if(analysisRunning)return; updateQuarterMode(); updateGuidanceDerived(); updateQ4Derived(); computeQuarterOpm(); const r=formRecord(); el('earningsOutputText').value=buildEarningsText(r); }
+    function previewEarnings(){ if(analysisRunning)return; updateQuarterMode(); updateGuidanceDerived(); updateQ4Derived(); computeQuarterOpm(); const r=formRecord(); el('earningsOutputText').value=r.qRevenue==null||r.qOp==null?'':buildEarningsText(r); }
   async function captureEarningsToBackend(r){ return; }
   function saveEarningsRecord(e){
     e.preventDefault(); updateGuidanceDerived(); computeQuarterOpm(); const r=formRecord(); const err=validateRecord(r); if(err){toast(err,3200);return;}
@@ -1160,7 +1194,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   function resetEarningsForm(){
     const f=el('earningsForm'); if(!f) return; f.reset(); f.elements.recordId.value=''; f.elements.fiscalYear.dataset.autoFiscal=''; f.elements.company.dataset.autoCompany=''; if(el('fiscalYearAutoStatus'))el('fiscalYearAutoStatus').textContent=''; f.elements.quarter.value='Q2'; f.elements.guidanceStatus.value='取得できず'; f.elements.dividendStatus.value='取得できず'; f.elements.buybackType.value='unknown'; activeAutoRecord=null; f.elements.fyOpm.value='';
     ['cumRevenueNow','cumOpNow','cumRevenuePriorNow','cumOpPriorNow'].forEach(id=>{if(el(id))el(id).value='';});
-    ['cumRevenuePrevQ','cumOpPrevQ','cumRevenuePriorPrevQ','cumOpPriorPrevQ'].forEach(id=>{if(el(id))el(id).value='0';});
+    ['cumRevenuePrevQ','cumOpPrevQ','cumRevenuePriorPrevQ','cumOpPriorPrevQ'].forEach(id=>{if(el(id))el(id).value='';});
     loadSegments([]); renderEarningsWatchlistSelect(); updateQuarterMode(); renderTemplateSettings(); clearManualSources(); el('autoFetchStatus').textContent='証券コード、決算期、四半期を選択後に実行します。PDFを直接指定した場合はそれを最優先し、不足分だけ自動探索します。'; el('autoFetchSources').innerHTML=''; el('earningsOutputText').value=''; el('guidanceCalcPreview').textContent=''; el('earningsFormTitle').textContent='決算結果を保存'; el('editBadge').classList.add('hidden');
   }
   function editEarnings(id,scroll=true){
@@ -1186,7 +1220,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   function renderEarnings(){
     const all=state.earningsRecords; el('earningsRecordCount').textContent=`${all.length}件`; el('earningsUpCount').textContent=`${all.filter(x=>x.guidanceStatus==='上方修正').length}件`; el('earningsDividendUpCount').textContent=`${all.filter(x=>x.dividendStatus==='増配').length}件`; el('earningsBuybackCount').textContent=`${all.filter(x=>['both','amount','shares','detected'].includes(x.buybackType)).length}件`;
     const rows=filteredEarnings(); const body=el('earningsTableBody');
-    body.innerHTML=rows.map(r=>`<tr><td><strong>${safe(r.ticker)}</strong></td><td>${safe(r.company)}</td><td>${safe(r.fiscalYear)}</td><td>${safe(r.quarter)}</td><td>${fmtNum(r.qRevenue)}</td><td class="${Number(r.qRevenueYoy)<0?'neg':'pos'}">${Number(r.qRevenueYoy)>=0?'+':''}${Math.round(r.qRevenueYoy)}%</td><td>${fmtNum(r.qOp)}</td><td class="${Number(r.qOpYoy)<0?'neg':'pos'}">${Number(r.qOpYoy)>=0?'+':''}${Math.round(r.qOpYoy)}%</td><td>${fmtOpm(r.qOpm)}</td><td>${Array.isArray(r.segments)&&r.segments.length?`${r.segments.length}区分`:'—'}</td><td><span class="status-chip ${statusClass(r.quarter==='Q4'?'新年度':r.guidanceStatus)}">${safe(r.quarter==='Q4'?'新年度':r.guidanceStatus)}</span></td><td><span class="status-chip ${statusClass(r.quarter==='Q4'?(Number(r.nextDividendYoy)>0?'増配':Number(r.nextDividendYoy)<0?'減配':'据置き'):r.dividendStatus)}">${safe(r.quarter==='Q4'?(Number(r.nextDividendYoy)>0?'増配':Number(r.nextDividendYoy)<0?'減配':'据置き'):r.dividendStatus)}</span></td><td>${r.buybackType==='unknown'?'取得できず':r.buybackType==='none'?'なし':'あり'}</td><td class="row-actions"><button class="icon-btn" data-preview-record="${safe(r.id)}">文面</button><button class="icon-btn" data-edit-record="${safe(r.id)}">編集</button><button class="icon-btn danger" data-delete-record="${safe(r.id)}">削除</button></td></tr>`).join('');
+    body.innerHTML=rows.map(r=>`<tr><td><strong>${safe(r.ticker)}</strong></td><td>${safe(r.company)}</td><td>${safe(r.fiscalYear)}</td><td>${safe(r.quarter)}</td><td>${fmtNum(r.qRevenue)}</td><td class="${Number(r.qRevenueYoy)<0?'neg':'pos'}">${Number.isFinite(r.qRevenueYoy)?(r.qRevenueYoy>=0?'+':'')+Math.round(r.qRevenueYoy)+'%':'取得できず'}</td><td>${fmtNum(r.qOp)}</td><td class="${Number(r.qOpYoy)<0?'neg':'pos'}">${Number.isFinite(r.qOpYoy)?(r.qOpYoy>=0?'+':'')+Math.round(r.qOpYoy)+'%':'取得できず'}</td><td>${fmtOpm(r.qOpm)}</td><td>${Array.isArray(r.segments)&&r.segments.length?`${r.segments.length}区分`:'—'}</td><td><span class="status-chip ${statusClass(r.quarter==='Q4'?'新年度':r.guidanceStatus)}">${safe(r.quarter==='Q4'?'新年度':r.guidanceStatus)}</span></td><td><span class="status-chip ${statusClass(r.quarter==='Q4'?(Number(r.nextDividendYoy)>0?'増配':Number(r.nextDividendYoy)<0?'減配':'据置き'):r.dividendStatus)}">${safe(r.quarter==='Q4'?(Number(r.nextDividendYoy)>0?'増配':Number(r.nextDividendYoy)<0?'減配':'据置き'):r.dividendStatus)}</span></td><td>${r.buybackType==='unknown'?'取得できず':r.buybackType==='none'?'なし':'あり'}</td><td class="row-actions"><button class="icon-btn" data-preview-record="${safe(r.id)}">文面</button><button class="icon-btn" data-edit-record="${safe(r.id)}">編集</button><button class="icon-btn danger" data-delete-record="${safe(r.id)}">削除</button></td></tr>`).join('');
     el('earningsTableEmpty').textContent=all.length ? '検索条件に該当する決算データはありません。' : '保存された決算データはありません。';
     el('earningsTableEmpty').classList.toggle('hidden',rows.length>0); el('earningsTableBody').closest('.table-wrap').classList.toggle('hidden',rows.length===0);
     body.querySelectorAll('[data-preview-record]').forEach(x=>x.onclick=()=>{const r=state.earningsRecords.find(y=>y.id===x.dataset.previewRecord);if(r){el('earningsOutputText').value=buildEarningsText(r);el('earningsOutputText').scrollIntoView({behavior:'smooth',block:'center'});}});
@@ -1228,9 +1262,12 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   const BROWSER_DIRECT_BUILD='earnings-companion-20261029-two-pdf-safe-v13';
   const OFFICIAL_COMPANY_HINTS={'6902':'デンソー','7282':'豊田合成','6471':'日本精工','7269':'スズキ'};
   function priorFYBrowser(label){const p=fyParts(label);return p?`${String(p.y-1).slice(-2)}/${p.m}`:'';}
-  async function getSourceSetCompanion(ticker,fiscalYear,quarter){
+  function irSites(){return state.irSites||{};}
+  function syncIrRoot(){const t=normTicker(el('earningsForm').elements.ticker.value);el('irRootInput').value=irSites()[t]?.url||'';el('irRootStatus').textContent=irSites()[t]?'登録済み：'+irSites()[t].url:'未登録。会社IRの決算資料ページを登録できます。';}
+  function saveIrRoot(){const f=el('earningsForm'),ticker=normTicker(f.elements.ticker.value),url=el('irRootInput').value.trim();if(!/^(?:\d{4}|\d{3}[A-Z])$/.test(ticker)){toast('銘柄コードを先に入力してください');return;}try{const u=new URL(url);if(!/^https?:$/.test(u.protocol)||u.username||u.password)throw Error();}catch{toast('IRサイトのhttp/https URLを入力してください');return;}state.irSites={...irSites(),[ticker]:{url,company:f.elements.company.value.trim()}};persist();syncIrRoot();toast('この銘柄のIRサイトを登録しました');}
+  async function getSourceSetCompanion(ticker,fiscalYear,quarter,latest=false){
     const f=el('earningsForm'),manual=collectManualSources(ticker,f.elements.company.value.trim());
-    return fetchJson('/api/earnings/sources',{method:'POST',body:JSON.stringify({ticker,fiscal_year:fiscalYear,quarter,manual_keys:Object.keys(manual)})});
+    return fetchJson('/api/earnings/sources',{method:'POST',body:JSON.stringify({ticker,fiscal_year:fiscalYear,quarter,latest:!!latest,official_url_hint:el('irRootInput').value.trim()||irSites()[ticker]?.url||'',company_hint:f.elements.company.value.trim(),manual_keys:Object.keys(manual)})});
   }
   function scheduleJpxNameLookup(tickerInput,companyInput){
     const a=typeof tickerInput==='string'?el(tickerInput):tickerInput,b=typeof companyInput==='string'?el(companyInput):companyInput;
@@ -1240,6 +1277,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   async function refreshCalendar(){toast('カレンダーは元の適時開示アプリをご利用ください');}
   async function refreshDisclosures(){toast('監視機能は元の適時開示アプリをご利用ください');}
 
+  el('saveIrRootBtn').onclick=saveIrRoot;el('fetchLatestIrBtn').onclick=()=>autoFetchEarnings({latest:true});
   // Events
   el('saveLoginBtn').onclick=switchLogin; el('loginId').addEventListener('keydown',e=>{if(e.key==='Enter')switchLogin();});
   el('tickerInput').addEventListener('input',autoCompany); el('tickerInput').addEventListener('input',()=>scheduleJpxNameLookup('tickerInput','companyInput')); el('tickerInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTicker();}); el('companyInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTicker();}); el('addTickerBtn').onclick=addTicker;
@@ -1258,7 +1296,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   document.querySelectorAll('.manual-source-url').forEach(inp=>inp.addEventListener('input',()=>{if(inp.value.trim()){manualPdfFiles.delete(inp.dataset.sourceKey);manualSourceState(inp.dataset.sourceKey,`URL指定：${inp.value.trim()}`);}else manualSourceState(inp.dataset.sourceKey,'');}));
 
   const ef=el('earningsForm');
-  ef.elements.ticker.addEventListener('input',autoEarningsCompany); ef.elements.fiscalYear.addEventListener('input',()=>{ef.elements.fiscalYear.dataset.autoFiscal='0';}); ef.elements.company.addEventListener('input',()=>{ef.elements.company.dataset.autoCompany='0';}); ef.elements.company.addEventListener('change',()=>{const t=normTicker(ef.elements.ticker.value);if(t&&ef.elements.company.value.trim()){syncCompanyName(t,ef.elements.company.value.trim());}}); ef.addEventListener('submit',saveEarningsRecord); el('earningsWatchlistSelect').addEventListener('change',selectEarningsTicker); el('addSegmentBtn').onclick=()=>addSegment();
+  ef.elements.ticker.addEventListener('input',autoEarningsCompany);ef.elements.ticker.addEventListener('change',syncIrRoot); ef.elements.fiscalYear.addEventListener('input',()=>{ef.elements.fiscalYear.dataset.autoFiscal='0';}); ef.elements.company.addEventListener('input',()=>{ef.elements.company.dataset.autoCompany='0';}); ef.elements.company.addEventListener('change',()=>{const t=normTicker(ef.elements.ticker.value);if(t&&ef.elements.company.value.trim()){syncCompanyName(t,ef.elements.company.value.trim());}}); ef.addEventListener('submit',saveEarningsRecord); el('earningsWatchlistSelect').addEventListener('change',selectEarningsTicker); el('addSegmentBtn').onclick=()=>addSegment();
   ['qRevenue','qOp'].forEach(k=>ef.elements[k].addEventListener('input',()=>{computeQuarterOpm();previewEarnings();}));
   ['fyRevenue','fyRevenuePrev','fyRevenuePrior','fyOp','fyOpPrev','fyOpPrior','guidanceStatus','dividendStatus','dividend','dividendPrev','dividendPrior','payout','buybackType','buybackAmount','buybackShares','buybackRatio','buybackPeriod','qRevenueYoy','qOpYoy','quarter','nextFiscalYear','nextFyRevenue','currentFyRevenueActual','nextFyOp','currentFyOpActual','nextDividend','currentDividendActual','nextPayout'].forEach(k=>ef.elements[k].addEventListener('input',()=>{updateQuarterMode();updateGuidanceDerived();updateQ4Derived();previewEarnings();}));
   el('applyQuarterCalcBtn').onclick=applyQuarterCalc; el('previewEarningsBtn').onclick=previewEarnings; el('copyEarningsTextBtn').onclick=copyEarningsText; el('resetEarningsBtn').onclick=resetEarningsForm; el('newEarningsBtn').onclick=()=>{resetEarningsForm();el('earningsForm').scrollIntoView({behavior:'smooth',block:'start'});};
@@ -1266,7 +1304,7 @@ details summary{cursor:pointer;font-weight:800;font-size:13px}.settings-grid{dis
   el('earningsCsvExportBtn').onclick=exportEarningsCsv; el('earningsCsvImportInput').onchange=async e=>{if(e.target.files?.[0])await importEarningsCsv(e.target.files[0]);e.target.value='';}; el('restoreSnapshotBtn').onclick=restoreSnapshot;
 
   ['ticker','fiscalYear','quarter'].forEach(k=>ef.elements[k].addEventListener('change',()=>{if(activeAutoRecord&&!analysisRunning)clearAnalysisResult();}));
-  render(); checkBackendHealth();
+  render();syncIrRoot();checkBackendHealth();
   // Companion app: no background TDnet/calendar polling. The original app remains the monitoring source.
 })();
 

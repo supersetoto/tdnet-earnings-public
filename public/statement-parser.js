@@ -11,7 +11,7 @@
   const unit=s=>/百万円/.test(s)?100:/千円/.test(s)?100000:/億円/.test(s)?1:null;
   function rows(items){
     const lines=[];
-    for(const item of items.filter(i=>norm(i.str??i.s)).map(i=>({s:norm(i.str??i.s),x:i.transform?.[4]??i.x,y:i.transform?.[5]??i.y,w:i.width??i.w??0})).sort((a,b)=>b.y-a.y||a.x-b.x)){
+    for(const item of items.filter(i=>norm(i.str??i.s)).map(i=>({s:norm(i.str??i.s),x:i.transform?.[4]??i.x,y:i.transform?.[5]??i.y,w:i.width??i.w??0,h:i.height??i.h??0,confidence:i.confidence??100})).sort((a,b)=>b.y-a.y||a.x-b.x)){
       let row=lines.find(r=>Math.abs(r.y-item.y)<2.4);
       if(!row){row={y:item.y,items:[]};lines.push(row);}row.items.push(item);
     }
@@ -107,10 +107,13 @@
       // Only the explicitly stated annual amount on a consistent pre-split basis is accepted.
       const pre=text.match(/(?:株式分割を考慮しない場合|株式分割前)[\s\S]*?年間配当金(?:合計)?は([\d,]+(?:\.\d+)?)円(?:\d+銭)?/);
       const priorPre=/前.*実績.*分割前|分割前.*実績|株式分割前の実績|当該株式分割前の実績/.test(text);
+      const splitDate=text.match(/(20\d{2})年(\d+)月(\d+)日付で[^。]{0,80}株式分割/);
+      const afterPriorYear=splitDate&&Number(splitDate[1])*100+Number(splitDate[2])>(y-1)*100+m;
+      const currentOnlySplit=afterPriorYear&&new RegExp(`${y}年${m}月期\\(予想\\)の1株当たり期末配当金については、当該株式分割の影響を考慮`).test(text);
       if(pre){result.forecast=Number(pre[1].replace(/,/g,''));result.basis='分割前換算';result.splitEquivalent=true;}
       else {result.forecast=null;result.priorActual=null;}
       // Unadjusted prior rows are on the same pre-split basis. Require that the annual total exists.
-      if(pre&&prior?.cells.length===5){result.priorActual=prior.cells[4];result.priorBasis='分割前実績';}
+      if(pre&&(priorPre||currentOnlySplit)&&prior?.cells.length===5){result.priorActual=prior.cells[4];result.priorBasis=priorPre?'分割前実績':'分割日以前の実績（当期予想のみ分割後との注記）';}else result.priorActual=null;
       result.splitNote=priorPre;
     }
     if(expected.q==='Q4'&&result.forecast==null&&!result.split)result.forecast=result.actual;
@@ -121,7 +124,7 @@
   const forbidden=/現金|棚卸|固定資産|無形資産|繰延税金|借入金|社債|法人所得税|資本金|資本剰余|自己株式|非支配|決算短信|20\d{2}年|財政状態|キャッシュ/;
   const aggregate=/^(?:計|合計|調整額|連結|消去.*|全社.*|報告セグメント|その他の項目|\(注.*)$/;
   function segments(pages,expected,actuals){
-    const packs={current:[],prior:[],method:'formal-reporting-segment-table'};const {y}=fy(expected.fy);
+    const packs={current:[],prior:[],method:'formal-reporting-segment-table'};const {y,m}=fy(expected.fy),startYear=m===12?y:y-1;
     for(const page of pages){const rs=page.rows;
       for(let a=0;a<rs.length;a++){
         if(!/^報告セグメント(?:\s|$)/.test(norm(rs[a].text)))continue;
@@ -132,7 +135,7 @@
         const revRow=totals.at(-1);if(!revRow)continue;const rv=numericItems(revRow),ov=numericItems(rs[opIndex]);if(rv.length!==ov.length)continue;
         const period=rs.slice(Math.max(0,a-7),a).map(r=>compact(r.text)).join('');
         const periodYear=period.match(/自(20\d{2})年/)?.[1];
-        const role=Number(periodYear)===y-1?'current':Number(periodYear)===y-2?'prior':null;if(!role)continue;
+        const role=Number(periodYear)===startYear?'current':Number(periodYear)===startYear-1?'prior':null;if(!role)continue;
         const divisor=unit(rs.slice(Math.max(0,a-3),opIndex+1).map(r=>r.text).join(' '));if(!divisor)continue;
         const expectedOp=actuals[role]?.op;if(!finite(expectedOp)||Math.abs((ov.at(-1).v??NaN)/divisor-expectedOp)>0.03)continue;
         const headerItems=rs.slice(a+1,headerEnd).flatMap(r=>r.items).filter(i=>!/^\(注\d*\)$|^\d+$/.test(i.s));
@@ -154,7 +157,9 @@
   }
   function parseStatement(pages,expected){
     const id=identity(pages,expected),a=performance(pages,expected),g=forecast(pages,expected),d=dividend(pages,expected),s=segments(pages,expected,a);
-    return {...id,actual:a.current,priorActual:a.prior,forecast:g,dividend:d,segments:s.current,priorSegments:s.prior,segmentMethod:s.method,linesCount:pages.reduce((n,p)=>n+p.rows.length,0)};
+    const nextFY=`${String((fy(expected.fy).y+1)%100).padStart(2,'0')}/${fy(expected.fy).m}`;
+    const nextDividend=expected.q==='Q4'?dividend(pages,{...expected,fy:nextFY,q:'Q1'}):null;
+    return {...id,actual:a.current,priorActual:a.prior,forecast:g,dividend:d,nextDividend,segments:s.current,priorSegments:s.prior,segmentMethod:s.method,linesCount:pages.reduce((n,p)=>n+p.rows.length,0)};
   }
   function parseBuyback(pages,expected){
     const text=pages.map(p=>p.rows.map(r=>compact(r.text)).join('')).join('');
@@ -177,7 +182,8 @@
     if((r.segments||[]).length>=3&&r.qRevenueYoy===0&&r.qOpYoy===0&&r.segments.every(s=>s.cumRevenueNow-s.cumRevenuePrevQ===s.cumRevenuePriorNow-s.cumRevenuePriorPrevQ&&s.cumOpNow-s.cumOpPrevQ===s.cumOpPriorNow-s.cumOpPriorPrevQ))problems.push('全セグメントの前年比が一律0%');
     for(const s of r.segments||[]){
       const revenue=s.cumRevenueNow-s.cumRevenuePrevQ,op=s.cumOpNow-s.cumOpPrevQ;
-      if(forbidden.test(s.name)||!finite(revenue)||revenue<=0||!finite(op)||Math.abs(op)>revenue)problems.push(`セグメント異常：${s.name}`);
+      const complete=['cumRevenueNow','cumRevenuePrevQ','cumRevenuePriorNow','cumRevenuePriorPrevQ','cumOpNow','cumOpPrevQ','cumOpPriorNow','cumOpPriorPrevQ'].every(k=>finite(s[k]));
+      if(!complete||forbidden.test(s.name)||!finite(revenue)||revenue<=0||!finite(op)||Math.abs(op)>revenue)problems.push(`セグメント異常：${s.name}`);
     }
     if(r.dividend!=null&&(r.dividend<0||r.dividend===1&&r.dividendPrior>10))problems.push('配当が不自然');
     return problems;

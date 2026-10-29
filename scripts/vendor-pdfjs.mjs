@@ -4,3 +4,5 @@ for(const file of ['pdf.min.mjs','pdf.worker.min.mjs'])fs.copyFileSync(path.join
 fs.copyFileSync(path.join(source,'LICENSE'),path.join(dest,'PDFJS-LICENSE'));
 const maps={};for(const file of fs.readdirSync(path.join(source,'cmaps')))if(file.endsWith('.bcmap'))maps[file]=fs.readFileSync(path.join(source,'cmaps',file)).toString('base64');
 fs.writeFileSync(path.join(dest,'cmaps.json'),JSON.stringify(maps));console.log('PDF.js 4.10.38 browser assets and CMaps prepared');
+
+for(const file of ['tesseract.min.js','tesseract.min.js.LICENSE.txt'])fs.copyFileSync(path.join(root,'node_modules/tesseract.js/dist',file),path.join(dest,file));

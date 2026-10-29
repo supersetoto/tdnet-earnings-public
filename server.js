@@ -4,6 +4,7 @@ const net=require('net');
 const fs=require('fs');
 const path=require('path');
 const {createDiscovery}=require('./discovery');
+const {OCR_ASSETS}=require('./ocr-assets');
 const CMAPS=JSON.parse(fs.readFileSync(path.join(__dirname,'public/vendor/cmaps.json'),'utf8'));
 
 const HOST=process.env.HOST||'0.0.0.0';
@@ -91,6 +92,8 @@ async function fetchPdf(rawUrl){
     if(ab.byteLength>MAX_PDF_BYTES)throw new Error('PDFが40MBを超えています');
     const buf=Buffer.from(ab);
     if(buf.subarray(0,5).toString('ascii')!=='%PDF-')throw new Error('取得結果がPDFではありません');
+    if(!buf.subarray(Math.max(0,buf.length-8192)).includes(Buffer.from('%%EOF')))throw new Error('PDFの末尾を確認できません。取得が途中で切れた可能性があります');
+    if(len&&!r.headers.get('content-encoding')&&len!==buf.length)throw new Error('PDFの取得サイズが一致しません');
     const item={at:Date.now(),buf,finalUrl:current};
     pdfCache.set(rawUrl,item);
     if(pdfCache.size>CACHE_MAX){
@@ -125,6 +128,7 @@ const server=http.createServer(async(req,res)=>{
   try{
     const base=`http://${req.headers.host||'localhost'}`;
     const u=new URL(req.url,base);
+    if(OCR_ASSETS[u.pathname]){const a=OCR_ASSETS[u.pathname],r=await fetch(a.url,{signal:AbortSignal.timeout(45000)});if(!r.ok)throw Error('OCRエンジン取得 HTTP '+r.status);const bytes=Buffer.from(await r.arrayBuffer());res.writeHead(200,{'Content-Type':a.type,'Cache-Control':'public, max-age=86400'});return res.end(bytes);}
     if(u.pathname==='/api/health')return json(res,200,{ok:true,build:BUILD,pdf_proxy:true});
     if(u.pathname==='/api/earnings/sources'&&req.method==='POST'){
       if(!allowRate(req))return json(res,429,{error:'リクエストが多すぎます'});
@@ -147,7 +151,7 @@ const server=http.createServer(async(req,res)=>{
       res.writeHead(200,{'Content-Type':'text/html; charset=utf-8','Content-Length':body.length,'Cache-Control':'no-cache'});
       return res.end(body);
     }
-    if(['/statement-parser.js','/vendor/pdf.min.mjs','/vendor/pdf.worker.min.mjs'].includes(u.pathname)||/^\/vendor\/cmaps\/[A-Za-z0-9_-]+\.bcmap$/.test(u.pathname)){
+    if(['/statement-parser.js','/presentation-parser.js','/presentation-browser.js','/ocr-numbers.js','/vendor/tesseract.min.js','/vendor/pdf.min.mjs','/vendor/pdf.worker.min.mjs'].includes(u.pathname)||/^\/vendor\/cmaps\/[A-Za-z0-9_-]+\.bcmap$/.test(u.pathname)){
       const body=u.pathname.endsWith('.bcmap')?Buffer.from(CMAPS[path.basename(u.pathname)]||'', 'base64'):fs.readFileSync(path.join(__dirname,'public',u.pathname));res.writeHead(200,{'Content-Type':u.pathname.endsWith('.bcmap')?'application/octet-stream':'text/javascript; charset=utf-8','Content-Length':body.length,'Cache-Control':'no-cache'});return res.end(body);
     }
     return json(res,404,{error:'not found'});
